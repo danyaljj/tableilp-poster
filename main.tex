@@ -25,6 +25,12 @@
 \documentclass[final]{beamer}
 
 \usepackage[scale=0.95]{beamerposter} % Use the beamerposter package for laying out the poster
+\usepackage{bigstrut}
+
+\usepackage{graphicx}  % Required for including images
+
+\usepackage{booktabs} % Top and bottom rules for tables
+
 
 \usetheme{confposter} % Use the confposter theme supplied with this template
 
@@ -55,14 +61,22 @@
 \setlength{\topmargin}{-0.5in} % Reduce the top margin size
 %-----------------------------------------------------------
 
-\usepackage{graphicx}  % Required for including images
+%%% Solver names
+\newcommand{\tableilp}{TableILP}
+%\newcommand{\tableilp}{QUIP}
+%\newcommand\lucene{IR solver}
+\newcommand\lucene{IR}
+\newcommand\arizona{SVM solver}
+%\newcommand\salience{PMI solver}
+\newcommand\salience{PMI}
+\newcommand\inference{RULE solver}
+\newcommand\oldilp{ILP solver}
+%\newcommand\praline{MLN solver}
+\newcommand\praline{MLN}
+\newcommand\combiner{Combiner}
 
-\usepackage{booktabs} % Top and bottom rules for tables
 
-
-\title{Integer-Linear-Program based Inference \\
-	for Elementary School Science Example Question Answering
-	} % Poster title
+\title{Question Answering via Integer Programming \\ over Semi-Structured Knowledge} % Poster title
 
 %	\begin{center}
 %		\begin{tabular}{ccc}
@@ -70,8 +84,8 @@
 %		\end{tabular}
 %	\end{center}
 
-\author{Daniel Khashabi$^*$, Ashish Shabrawal$^a$, Tushar Khot$^a$, 
-	Peter Clark$^a$, Peter Turney$^a$, Oren Etzioni$^a$, Dan Roth$^*$} 
+\author{Daniel Khashabi$^*$, Tushar Khot$^a$, Ashish Shabrawal$^a$,  
+	Peter Clark$^a$, Oren Etzioni$^a$, Dan Roth$^*$} 
 
 \institute{Cogntive Computation Group, UIUC$^*$ \quad \quad Allen Institute for Artificial Intelligence$^a$ 
 	 } 
@@ -226,37 +240,59 @@
 	proof graph $P$ a score $f_P$ designed to balance rewards (such as for including many links with high similarity	measure $g$ or linking with more columns of a table) with penalties (such as for using too many tables or low similarity links).
 
 	%\begin{block}{Result and Analysis}
-	\begin{table}
-		{ \small
-		\begin{tabular}{|c|c|c|c|}
-			\hline 
-			Solver & Train   & Test & Run time (on Train) \\ 
-			\hline 
-			\hline 
-			\shortstack{ILPsolver \\ (with Lucene fallback)}  &  80.60\% & -- & \shortstack{ 2 minutes\\ 36 seconds} \\ 
-			\hline 
-			ILPsolver  &  72\% & 43.8\% & -- \\ 
-			\hline 
-		\end{tabular}
-		}
-	\end{table}
+%	\begin{table}
+%		{ \small
+%		\begin{tabular}{|c|c|c|c|}
+%			\hline 
+%			Solver & Train   & Test & Run time (on Train) \\ 
+%			\hline 
+%			\hline 
+%			\shortstack{ILPsolver \\ (with Lucene fallback)}  &  80.60\% & -- & \shortstack{ 2 minutes\\ 36 seconds} \\ 
+%			\hline 
+%			ILPsolver  &  72\% & 43.8\% & -- \\ 
+%			\hline 
+%		\end{tabular}
+%		}
+%	\end{table}
 		
-		\begin{itemize}
-			\item Relative strength is for questions where multiple pieces of information need to be combined together. 
-			\item Successfully answers the following by joining two rows of two different tables together: \\
-			{\tt 
-				table13:has-part(``plant'', ``stomata'').
-				tablez3:part-output(``stomata'', ``oxygen'').
-			} 
-			\\
-			{\small  \textit{ Which gas is given off by plants? (A) Hydrogen (B) Nitrogen (C) Oxygen (D) Helium} }
-			\item In contrast, the PMI solver and the RULE solver both answer
-			this question incorrectly: plants and nitrogen have high
-			co-occurrence, and the RULE solver does not have an appropriate
-			rule.
-		\end{itemize}		
+%		\begin{itemize}
+%			\item Relative strength is for questions where multiple pieces of information need to be combined together. 
+%			\item Successfully answers the following by joining two rows of two different tables together: \\
+%			{\tt 
+%				table13:has-part(``plant'', ``stomata'').
+%				tablez3:part-output(``stomata'', ``oxygen'').
+%			} 
+%			\\
+%			{\small  \textit{ Which gas is given off by plants? (A) Hydrogen (B) Nitrogen (C) Oxygen (D) Helium} }
+%			\item In contrast, the PMI solver and the RULE solver both answer
+%			this question incorrectly: plants and nitrogen have high
+%			co-occurrence, and the RULE solver does not have an appropriate
+%			rule.
+%		\end{itemize}		
 	%\end{block}
 \end{block}
+
+\begin{block}{Results}
+	Among the two structured inference approaches, \tableilp\ outperforms the MLN baseline by 14\%. Further, given the same semi-structured knowledge (i.e., the Table Corpus), \tableilp\ is substantially (+10\%) better at exploiting the structure than the \lucene(tables) baseline,  which uses the same data expressed as sentences.
+	
+	\begin{table}[htb]
+		%	\centering
+		%	\small
+		%	\setlength\tabcolsep{10pt}
+		%	\setlength\doublerulesep{\arrayrulewidth}
+		\begin{tabular}{l|c}
+			Solver & Test Score (\%) \\
+			\hline\hline % \bigstrut[t]
+			\praline & 47.5 \\
+			\lucene (tables) & 51.2 \\
+			\tableilp & {\bf 61.5} \\
+			\hline
+		\end{tabular}
+		\caption{\small \tableilp~significantly outperforms both the prior MLN reasoner, and IR using identical knowledge as \tableilp}
+		\label{tab:eval}
+	\end{table}
+\end{block}
+
 
 \end{column} % End of column 2.1
 
@@ -286,53 +322,133 @@
 
 \begin{column}{\onecolwid} % The third column
 
-\begin{block}{}
-		Two main failure modes:
-		\begin{enumerate}
-			\item Missing knowledge: The curated tables do not cover the
-			information required.
-			\item Control: While the table solver uses global constraints to
-			constrain the paths explored, it may still find nonsensical
-			paths (joins) through the tables during inference.
-		\end{enumerate}
+\begin{block}{Complementary Strength}
+We create an ensemble of \tableilp, \lucene, and \salience\ solvers, combining their answer predictions using a simple Logistic Regression model trained on the development set. Table \ref{tab:combination} shows the results, with the final combination at 69\% representing a significant improvement over individual solvers.
+
+\begin{table}[htb]
+	\centering
+	\small
+	\setlength\tabcolsep{10pt}
+	\setlength\doublerulesep{\arrayrulewidth}
+	\begin{tabular}{l|c}
+		%\textbf{Solver} & \textbf{Test score} \\
+		Solver & Test Score (\%) \\
+		\hline\hline \bigstrut[t]
+		\lucene & 58.5 \\
+		\salience & 60.7 \\
+		\tableilp & 61.5  \\
+		\tableilp\ + \lucene & 66.1 \\
+		\tableilp\ + \salience & 67.6 \\
+		\tableilp\ + \lucene + \salience & {\bf 69.0} \\
+		\hline
+	\end{tabular}
+	\caption{Solver combination results}
+	\label{tab:combination}
+\end{table}
+
+\begin{block}{Ablation study}
+To quantify the importance of various components of our system, we performed several ablation experiments, summarized in Table~\ref{tab:ablation} and described next.
+
+\begin{table}[htb]
+	\centering
+	\small
+	\setlength\tabcolsep{8pt}
+	\setlength\doublerulesep{\arrayrulewidth}
+	\begin{tabular}{ll|cc}
+		%\multicolumn{1}{c|}{\textbf{Approach}} & \textbf{Test score} & \textbf{\% drop} \\
+		\multicolumn{2}{c|}{Solver} & Test Score (\%) \\
+		\hline\hline
+		\multicolumn{2}{l|}{\bigstrut[t] \tableilp} & 61.5  \\
+		& No Multiple Row Inference & 51.0 \\
+		& No Relation Matching & 55.6 \\
+		\cline{2-3} \bigstrut[t] 
+		& No Open IE Tables & 52.3  \\
+		& No Lexical Entailment & 50.5  \\
+		\hline 
+	\end{tabular}
+	\caption{Ablation results for \tableilp}
+	\label{tab:ablation}
+\end{table}
+
 \end{block}
 
-\begin{block}{Combination Solver}
-Five solvers, each using different types of knowledge, to answer multiple choice questions.
-\begin{figure}
-	\includegraphics[scale=0.8]{combination.png}
-\end{figure}
-\begin{itemize}
-	\item The IR solver operates directly on the text. The
-	PMI solver and the SVM solver use statistical data derived
-	from text.
-	\item  The RULE solver and the ILP solver reason with
-	knowledge extracted from text. 
-	\item Each solver assigns confidences to each of the answer options, and a combiner module combines the results together using logistic regression
-	trained on a set of training examples.
-\end{itemize}
+\begin{block}{Question Perturbation }
+One desirable property of QA systems is robustness to simple variations of a question, \emph{especially when a variation would make the question arguably easier for humans}. 
 
-\begin{figure}
-	\includegraphics[scale=0.9]{ablation.png}
-	\hspace{0.5cm}
-	\includegraphics[scale=0.9]{solverPairs.png}
-\end{figure}
+To assess this, we consider a simple, automated way to perturb each 4-way multiple-choice question: (1) query Bing search engine with the question text; (2) chunk the resulting snippets; (3) remove stop words, as well as words (or their lemma) appearing in the question; (4) sort the  strings based on their frequency; and (5) replace the three incorrect answer options in the question with the most frequently occurring strings, thereby generating a new question. For instance:
+\begin{quote}
+	{In New York State, the longest period of daylight occurs during which month? (A) \emph{eastern} (B) June (C) \emph{history} (D) \emph{years}}
+\end{quote}
 
-\begin{itemize}
-	\item Figure left: Effect of removing an individual solver from the ensemble. The results suggest each solver contributes to the overall score 
-	\item Figure right: Different pairs of solvers answer substantially different question sets correctly (i.e., solvers are not redundant with each other).
-\end{itemize}
-
+\begin{table}[htb]
+	\centering
+	\small
+	\setlength\tabcolsep{10pt}
+	\setlength\doublerulesep{\arrayrulewidth}
+	\begin{tabular}{l|cccc}
+		& Original & \multicolumn{2}{c}{\% Drop with Perturbation} \\
+		\cline{3-4}
+		Solver & Score (\%) & \bigstrut[t] absolute & relative \\
+		\hline\hline \bigstrut[t]
+		\lucene & 70.7 & 13.8 & 19.5 \\
+		\salience & 73.6 & 24.4 & 33.2 \\
+		\tableilp & 85.0 & {\bf 10.5} & {\bf 12.3} \\
+		\hline
+	\end{tabular}
+	\caption{Drop in solver scores (on the development set, rather than the hidden test set) when questions are perturbed}
+	\label{tab:perturbation}
+\end{table}
+\end{block}
 \end{block}
 
 
-\begin{block}{Selected References}
+%\begin{block}{}
+%		Two main failure modes:
+%		\begin{enumerate}
+%			\item Missing knowledge: The curated tables do not cover the
+%			information required.
+%			\item Control: While the table solver uses global constraints to
+%			constrain the paths explored, it may still find nonsensical
+%			paths (joins) through the tables during inference.
+%		\end{enumerate}
+%\end{block}
 
-\nocite{*} 
-\small{\bibliographystyle{unsrt}
-\bibliography{sample}\vspace{0.75in}}
+%\begin{block}{Combination Solver}
+%Five solvers, each using different types of knowledge, to answer multiple choice questions.
+%\begin{figure}
+%	\includegraphics[scale=0.8]{combination.png}
+%\end{figure}
+%\begin{itemize}
+%	\item The IR solver operates directly on the text. The
+%	PMI solver and the SVM solver use statistical data derived
+%	from text.
+%	\item  The RULE solver and the ILP solver reason with
+%	knowledge extracted from text. 
+%	\item Each solver assigns confidences to each of the answer options, and a combiner module combines the results together using logistic regression
+%	trained on a set of training examples.
+%\end{itemize}
+%
+%\begin{figure}
+%	\includegraphics[scale=0.9]{ablation.png}
+%	\hspace{0.5cm}
+%	\includegraphics[scale=0.9]{solverPairs.png}
+%\end{figure}
+%
+%\begin{itemize}
+%	\item Figure left: Effect of removing an individual solver from the ensemble. The results suggest each solver contributes to the overall score 
+%	\item Figure right: Different pairs of solvers answer substantially different question sets correctly (i.e., solvers are not redundant with each other).
+%\end{itemize}
 
-\end{block}
+%\end{block}
+
+
+%\begin{block}{Selected References}
+
+%\nocite{*} 
+%\small{\bibliographystyle{unsrt}
+%\bibliography{sample}\vspace{0.75in}}
+
+%\end{block}
 
 \setbeamercolor{block title}{fg=red,bg=white} % Change the block title color
 
